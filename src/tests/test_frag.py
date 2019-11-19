@@ -196,5 +196,15 @@ def test_frag_no_ack_no_loss(rule_no_ack):
     assert "SUCCESS: MIC matched" in stdout
 
 def test_frag_no_ack_loss(rule_no_ack):
-    stdout = frag_generic(rule_no_ack, packet_loss=True)
-    assert "SUCCESS: MIC matched" not in stdout
+    """ Test fragmentation with loss
+        The "while timeout:/continue" construction ensures that at least a packet is lost,
+        to avoid cases where MIC is OK.
+    """
+    timeout = 100
+    while timeout:
+        timeout -= 1
+        stdout = frag_generic(rule_no_ack, packet_loss=True)
+        if not "Packet Loss Condition is -> True" in stdout:
+            continue
+        assert "SUCCESS: MIC matched" not in stdout
+        break
